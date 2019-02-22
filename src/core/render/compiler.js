@@ -164,6 +164,7 @@ export class Compiler {
         embed = compileMedia[type].call(this, href, title)
         embed.type = type
       }
+      embed.fragment = config.fragment
 
       return embed
     }
@@ -300,6 +301,23 @@ export class Compiler {
       }
 
       return `<img src="${url}"data-origin="${href}" alt="${text}"${attrs}>`
+    }
+    origin.list = renderer.list = function (body, ordered, start) {
+      const isTaskList = /<li class="task-list-item">/.test(body.split('class="task-list"')[0])
+      const isStartReq = start && start > 1
+      const tag = ordered ? 'ol' : 'ul'
+      const tagAttrs = [
+        (isTaskList ? 'class="task-list"' : ''),
+        (isStartReq ? `start="${start}"` : '')
+      ].join(' ').trim()
+
+      return `<${tag} ${tagAttrs}>${body}</${tag}>`
+    }
+    origin.listitem = renderer.listitem = function (text) {
+      const isTaskItem = /^(<input.*type="checkbox"[^>]*>)/.test(text)
+      const html = isTaskItem ? `<li class="task-list-item"><label>${text}</label></li>` : `<li>${text}</li>`
+
+      return html
     }
 
     renderer.origin = origin
